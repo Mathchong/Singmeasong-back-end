@@ -1,9 +1,26 @@
 import supertest from 'supertest';
-
 import app from '../src/app'
+import { createRecomendation } from './factories/recomendationFactory'
+
+
+import { PrismaClient } from '@prisma/client'
+const client = new PrismaClient();
+
+beforeEach(async () => {
+    await client.$executeRaw`DELETE FROM recommendations`
+})
+
 
 describe("Test POST /recommendations route", () => {
-    it.todo("Must return 201 when create a recomendation")
+    it("Must return 201 when create a recomendation", async () => {
+        const recomendation = await createRecomendation()
+
+        const response = await supertest(app).post('/recommendations/').send(recomendation)
+
+        console.log(response.body)
+
+        expect(response.status).toBe(201)
+    })
     it.todo("Verify created recomendation at database")
 
     it.todo("Must return 409 if attepment to create an existing recomendation")
