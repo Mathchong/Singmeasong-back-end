@@ -206,9 +206,33 @@ describe("Test POST /recommendations/:id/downvote", () => {
 })
 
 describe("Test GET at /recommendations", () => {
-    it.todo("Must return recomendatios in a specif format")
-    it.todo("Must return the last 10 recommendations")
-    it.todo("Cannot return more than 10 recommendations")
+    it("Must return recomendatios in a specif format", async () => {
+        let recommendation = await createRecommendation()
+        const createdRecommendation = await client.recommendation.create({ data: recommendation })
+
+        const response = await supertest(app).get(`/recommendations`)
+
+        console.log(response.body[0], createdRecommendation)
+        expect(response.status).toBe(200)
+        expect(response.body).toBeInstanceOf(Array)
+        expect(response.body[0]).toEqual(createdRecommendation)
+
+    })
+    it("Must return the last 10 recommendations", async () => {
+        const recommendations = []
+        for (let i = 0; i < 13; i++) {
+            recommendations.push(await createRecommendation())
+        }
+
+        const created = await client.recommendation.createMany({ data: recommendations })
+
+        const response = await supertest(app).get(`/recommendations`)
+
+        expect(response.status).toBe(200)
+        expect(response.body).toBeInstanceOf(Array)
+        expect(response.body.length).toEqual(10)
+    })
+
 })
 
 describe("Test GET /recommendations/:id", () => {
