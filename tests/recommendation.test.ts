@@ -1,4 +1,5 @@
 import supertest from 'supertest';
+import { faker } from '@faker-js/faker';
 import app from '../src/app'
 import { createRecommendation } from './factories/recommendationFactory'
 
@@ -23,6 +24,7 @@ describe("Test POST /recommendations route", () => {
 
         expect(response.status).toBe(201)
     })
+
     it("Verify created recommendation at database", async () => {
         const recommendation = await createRecommendation()
 
@@ -52,6 +54,7 @@ describe("Test POST /recommendations route", () => {
         expect(response.status).toBe(422)
 
     })
+
     it("Must return 422 if not sent 'youtubeLink' property", async () => {
         const recommendation = await createRecommendation()
         delete recommendation.youtubeLink
@@ -87,6 +90,7 @@ describe("Test POST /recommendations route", () => {
 
         expect(response.status).toBe(422)
     })
+
     it("Must return 422 if sent an extra property", async () => {
         const recommendation: any = await createRecommendation()
         recommendation.newProperty = 'testing'
@@ -97,17 +101,108 @@ describe("Test POST /recommendations route", () => {
 })
 
 describe("Test POST /recommendations/:id/upvote", () => {
-    it.todo("Verify database for vote counting")
-    it.todo("Must return 404 if numeric id do not exist")
-    it.todo("Must return 404 if sent a not numeric id")
+    it("Verify database for vote counting", async () => {
+        const recommendation = await createRecommendation()
+        const createdRecommendation = await client.recommendation.create({ data: recommendation })
+        const { id } = createdRecommendation
+        let updatedRecommendation
+
+        const response = await supertest(app).post(`/recommendations/${id}/upvote`)
+
+        updatedRecommendation = await client.recommendation.findUnique({
+            where: { id }
+        })
+
+        expect(response.status).toBe(200)
+        expect(updatedRecommendation.score).toBe(1)
+
+    })
+
+    it("Must return 404 if numeric id do not exist", async () => {
+        const recommendation = await createRecommendation()
+        const createdRecommendation = await client.recommendation.create({ data: recommendation })
+        const { id } = createdRecommendation
+
+        const response = await supertest(app).post(`/recommendations/${id + 1}/upvote`)
+
+        expect(response.status).toBe(404)
+
+    })
+    // it("Must return 404 if sent a not numeric id", async () => {
+
+    //     const fakeString = faker.lorem.word()
+
+    //     const response = await supertest(app).post(`/recommendations/${fakeString}/upvote`)
+
+    //     expect(response.status).toBe(404)
+    // })
 })
 
 describe("Test POST /recommendations/:id/downvote", () => {
-    it.todo("Verify database for vote counting")
-    it.todo("Must return 404 if numeric id do not exist")
-    it.todo("Must return 404 if sent a not numeric id")
-    it.todo("recommendation must be in database if vote is equal -5")
-    it.todo("recommendation must be deleted if vote is bellow -5")
+    it("Verify database for vote counting", async () => {
+        const recommendation = await createRecommendation()
+        const createdRecommendation = await client.recommendation.create({ data: recommendation })
+        const { id } = createdRecommendation
+
+        const response = await supertest(app).post(`/recommendations/${id}/downvote`)
+
+        const updatedRecommendation = await client.recommendation.findUnique({
+            where: {
+                id
+            }
+        })
+
+        expect(response.status).toBe(200)
+        expect(updatedRecommendation.score).toBe(-1)
+    })
+
+    it("Must return 404 if numeric id do not exist", async () => {
+        const recommendation = await createRecommendation()
+        const createdRecommendation = await client.recommendation.create({ data: recommendation })
+        const { id } = createdRecommendation
+
+        const response = await supertest(app).post(`/recommendations/${id + 1}/downvote`)
+
+        expect(response.status).toBe(404)
+    })
+
+    // it.todo("Must return 404 if sent a not numeric id")
+    it("recommendation must be in database if vote is equal -5", async () => {
+        const recommendation = await createRecommendation()
+        const createdRecommendation = await client.recommendation.create({ data: recommendation })
+        const { id } = createdRecommendation
+
+        for (let i = 0; i < 5; i++) {
+            await supertest(app).post(`/recommendations/${id}/downvote`)
+        }
+
+        const updatedRecommendation = await client.recommendation.findUnique({
+            where: {
+                id
+            }
+        })
+
+        expect(updatedRecommendation).not.toBeFalsy()
+        expect(updatedRecommendation.score).toBe(-5)
+    })
+
+    it("recommendation must be deleted if vote is bellow -5", async () => {
+        const recommendation = await createRecommendation()
+        const createdRecommendation = await client.recommendation.create({ data: recommendation })
+        const { id } = createdRecommendation
+
+        for (let i = 0; i < 6; i++) {
+            await supertest(app).post(`/recommendations/${id}/downvote`)
+        }
+
+        const updatedRecommendation = await client.recommendation.findUnique({
+            where: {
+                id
+            }
+        })
+
+        expect(updatedRecommendation).toBeFalsy()
+    })
 })
 
 describe("Test GET at /recommendations", () => {
