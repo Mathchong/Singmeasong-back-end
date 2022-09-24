@@ -261,16 +261,53 @@ describe("Test GET /recommendations/:id", () => {
 
 describe("Test GET /recommendations/random", () => {
     it("Must return recomendatios in a specif format", async () => {
-        
+        const recommendation = await createRecommendation()
+        const created = await client.recommendation.create({ data: recommendation })
+
+        const response = await supertest(app).get(`/recommendations/random`)
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual(created)
     })
-    it.todo("Must return 404 if there is no recommendation at database")
-    it.todo("Test if 70% of requests get a recommendation with a score greater than 10 if exists")
-    it.todo("If only have recommendation with score greater than 10 or 10 and lower, must return a recommendation")
+
+    it("Must return 404 if there is no recommendation at database", async () => {
+        const response = await supertest(app).get(`/recommendations/random`)
+
+        expect(response.status).toBe(404)
+    })
+
+    it("Test if 70% of requests get a recommendation with a score greater than 10 if exists", async () => {
+        const recommendation1: any = await createRecommendation()
+        const recommendation2: any = await createRecommendation()
+        recommendation1.score = 15
+        let highScoreCount = 0
+
+        const createdHighScore = await client.recommendation.create({ data: recommendation1 })
+        const createdLowScore = await client.recommendation.create({ data: recommendation2 })
+
+        for (let i = 0; i < 100; i++) {
+            const { body } = await supertest(app).get(`/recommendations/random`)
+            if (body.id === createdHighScore.id) highScoreCount++;
+        }
+        console.log(highScoreCount)
+        expect(highScoreCount).toBeGreaterThanOrEqual(68)
+    })
+
+    it("If only have recommendation with score greater than 10 or 10 and lower, must return a recommendation", async () => {
+        let recommendation: any = await createRecommendation()
+        recommendation.score = 15
+        const created = await client.recommendation.create({ data: recommendation })
+
+        const response = await supertest(app).get(`/recommendations/random`)
+
+        expect(response.status).toBe(200)
+        expect(response.body).not.toBeFalsy()
+    })
+
 })
 
 describe("Test GET /recommendations/top/:amount", () => {
     it.todo("Must return recomendatios in a specif format")
     it.todo("Must return 404 if there is no recommendation at database")
-    it.todo("Test if 70% of requests get a recommendation with a score greater than 10 if exists")
-    it.todo("If only have recommendation with score greater than 10 or 10 and lower, must return a recommendation")
+    it.todo("Test the order of recommendations")
 })
