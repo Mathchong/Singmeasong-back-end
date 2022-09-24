@@ -212,12 +212,12 @@ describe("Test GET at /recommendations", () => {
 
         const response = await supertest(app).get(`/recommendations`)
 
-        console.log(response.body[0], createdRecommendation)
         expect(response.status).toBe(200)
         expect(response.body).toBeInstanceOf(Array)
         expect(response.body[0]).toEqual(createdRecommendation)
 
     })
+
     it("Must return the last 10 recommendations", async () => {
         const recommendations = []
         for (let i = 0; i < 13; i++) {
@@ -236,13 +236,33 @@ describe("Test GET at /recommendations", () => {
 })
 
 describe("Test GET /recommendations/:id", () => {
-    it.todo("Must return recomendatios in a specif format")
-    it.todo("Must return 404 if numeric id do not exist")
-    it.todo("Must return 404 if sent a not numeric id")
+    it("Must return recomendatios in a specif format", async () => {
+        const recommendation = await createRecommendation()
+        const created = await client.recommendation.create({ data: recommendation })
+        const { id } = created
+
+        const response = await supertest(app).get(`/recommendations/${id}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body.id).toBe(id)
+        expect(response.body).toEqual(created)
+    })
+    it("Must return 404 if numeric id do not exist", async () => {
+        const recommendation = await createRecommendation()
+        const created = await client.recommendation.create({ data: recommendation })
+        const { id } = created
+
+        const response = await supertest(app).get(`/recommendations/${id + 1}`)
+
+        expect(response.status).toBe(404)
+    })
+    // it.todo("Must return 404 if sent a not numeric id")
 })
 
 describe("Test GET /recommendations/random", () => {
-    it.todo("Must return recomendatios in a specif format")
+    it("Must return recomendatios in a specif format", async () => {
+        
+    })
     it.todo("Must return 404 if there is no recommendation at database")
     it.todo("Test if 70% of requests get a recommendation with a score greater than 10 if exists")
     it.todo("If only have recommendation with score greater than 10 or 10 and lower, must return a recommendation")
