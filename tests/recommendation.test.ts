@@ -12,6 +12,7 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
+    await client.$executeRaw`DELETE FROM recommendations`
     await client.$disconnect()
 })
 
@@ -256,7 +257,7 @@ describe("Test GET /recommendations/:id", () => {
 
         expect(response.status).toBe(404)
     })
-    // it.todo("Must return 404 if sent a not numeric id")
+
 })
 
 describe("Test GET /recommendations/random", () => {
@@ -307,7 +308,33 @@ describe("Test GET /recommendations/random", () => {
 })
 
 describe("Test GET /recommendations/top/:amount", () => {
-    it.todo("Must return recomendatios in a specif format")
-    it.todo("Must return 404 if there is no recommendation at database")
-    it.todo("Test the order of recommendations")
+    it("Must return recomendatios in a specif format", async () => {
+        const recommendation = await createRecommendation()
+        const created = await client.recommendation.create({ data: recommendation })
+
+        const response = await supertest(app).get(`/recommendations/top/1`)
+
+        expect(response.status).toBe(200)
+        expect
+    })
+
+    it("Test the order of recommendations", async () => {
+        const recommendations: any = []
+        recommendations.push(await createRecommendation())
+        recommendations.push(await createRecommendation())
+        recommendations.push(await createRecommendation())
+
+        recommendations[0].score = 7
+        recommendations[1].score = 3
+        recommendations[2].score = 15
+
+        const created = await client.recommendation.createMany({ data: recommendations })
+
+        const response = await supertest(app).get(`/recommendations/top/3`)
+
+        expect(response.status).toBe(200)
+        expect(response.body[0].score).toBe(15)
+        expect(response.body[1].score).toBe(7)
+        expect(response.body[2].score).toBe(3)
+    })
 })
