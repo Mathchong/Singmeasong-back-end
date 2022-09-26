@@ -6,7 +6,8 @@ const testing = new TestService()
 
 export default class TestController {
     async createOneRecommendation(req: Request, res: Response) {
-        const created = await testing.createOne();
+        const body = req.body
+        const created = await testing.createOne(body);
 
         return res.status(201).json({ status: 200, message: "created recommendation", data: created });
     }

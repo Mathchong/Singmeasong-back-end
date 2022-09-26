@@ -10,8 +10,7 @@ export default class TestService {
         await test.resetDatabase()
     }
 
-    async createOne() {
-        const recommendation = await createRecommendation()
+    async createOne(recommendation: { name: string, youtubeLink: string }) {
 
         return await test.createOne(recommendation)
     }
