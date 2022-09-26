@@ -1,7 +1,7 @@
 import supertest from 'supertest';
 import { faker } from '@faker-js/faker';
-import app from '../src/app'
-import { createRecommendation } from './factories/recommendationFactory'
+import app from '../../src/app'
+import { createRecommendation } from '../factories/recommendationFactory'
 
 
 import { PrismaClient } from '@prisma/client'

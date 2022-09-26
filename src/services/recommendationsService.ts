@@ -83,11 +83,11 @@ function getScoreFilter(random: number) {
 }
 
 export const recommendationService = {
-  insert,
-  upvote,
-  downvote,
+  insert,//testada
+  upvote,//testada
+  downvote,//testada
   getRandom,
-  get,
-  getById: getByIdOrFail,
+  get,//testada
+  getById: getByIdOrFail,//Testada
   getTop,
 };
